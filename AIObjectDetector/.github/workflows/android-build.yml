@@ -19,24 +19,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK command-line tools
+      - name: Use runner's preinstalled Android SDK
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip lib32stdc++6
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-          cd $ANDROID_SDK_ROOT
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline.zip
-          unzip -q cmdline.zip -d cmdline-tools
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
+          # GitHub hosted ubuntu runners include Android SDK at /usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
           export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
-          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-          sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          sdkmanager --list || true
 
       - name: Build APK (Debug)
-        env:
-          ANDROID_SDK_ROOT: ${{ runner.home }}/android-sdk
-          ANDROID_HOME: ${{ runner.home }}/android-sdk
         run: |
           cd AIObjectDetector
           if [ -f ./gradlew ]; then
