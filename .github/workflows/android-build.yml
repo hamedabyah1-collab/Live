@@ -32,6 +32,12 @@ jobs:
           sudo unzip -q /tmp/gradle.zip -d /opt/gradle
           echo "/opt/gradle/gradle-8.7/bin" >> $GITHUB_PATH
 
+      - name: Download Gradle Wrapper JAR
+        run: |
+          cd AIObjectDetector
+          mkdir -p gradle/wrapper
+          wget -q https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
+
       - name: Build APK (Debug)
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
