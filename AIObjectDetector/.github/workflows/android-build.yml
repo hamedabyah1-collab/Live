@@ -39,13 +39,11 @@ jobs:
 
       - name: Build APK (Debug)
         env:
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          GRADLE_HOME: /opt/gradle/gradle-8.7
+          GRADLE_USER_HOME: /home/runner/.gradle
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
-          cd AIObjectDetector
           chmod +x ./gradlew
-          ./gradlew assembleDebug -x lint --no-daemon
+          ./gradlew assembleDebug -x lint --no-daemon -g /home/runner/.gradle
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
