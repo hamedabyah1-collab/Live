@@ -33,14 +33,14 @@ jobs:
           echo "/opt/gradle/gradle-8.7/bin" >> $GITHUB_PATH
 
       - name: Build APK (Debug)
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+          GRADLE_HOME: /opt/gradle/gradle-8.7
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           cd AIObjectDetector
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug -x lint --no-daemon
-          else
-            gradle assembleDebug -x lint --no-daemon
-          fi
+          chmod +x ./gradlew
+          ./gradlew assembleDebug -x lint --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
