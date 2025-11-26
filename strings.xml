@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">كاشف الأشياء الذكي</string>
+    
+    <!-- Main Screen -->
+    <string name="welcome_title">مرحباً بك في كاشف الأشياء الذكي</string>
+    <string name="welcome_subtitle">اكتشف العالم من حولك باستخدام الذكاء الاصطناعي</string>
+    <string name="start_camera">ابدأ الكشف</string>
+    <string name="view_history">السجل</string>
+    <string name="settings">الإعدادات</string>
+    
+    <!-- Camera Screen -->
+    <string name="camera_title">وجه الكاميرا نحو أي شيء</string>
+    <string name="capture_button">التقط</string>
+    <string name="flash_on">الفلاش مفعل</string>
+    <string name="flash_off">الفلاش متوقف</string>
+    <string name="switch_camera">تبديل الكاميرا</string>
+    <string name="analyzing">جاري التحليل...</string>
+    
+    <!-- Result Screen -->
+    <string name="result_title">النتيجة</string>
+    <string name="object_name">الاسم:</string>
+    <string name="object_category">الفئة:</string>
+    <string name="object_description">الوصف:</string>
+    <string name="object_info">معلومات إضافية:</string>
+    <string name="object_uses">الاستخدامات:</string>
+    <string name="confidence">الثقة: %1$d%%</string>
+    <string name="share_result">مشاركة</string>
+    <string name="save_result">حفظ</string>
+    <string name="scan_again">مسح مرة أخرى</string>
+    
+    <!-- History Screen -->
+    <string name="history_title">السجل</string>
+    <string name="history_empty">لا يوجد سجل بعد</string>
+    <string name="clear_history">مسح السجل</string>
+    <string name="delete_item">حذف</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="language">اللغة</string>
+    <string name="dark_mode">الوضع الليلي</string>
+    <string name="save_images">حفظ الصور تلقائياً</string>
+    <string name="high_quality">جودة عالية</string>
+    <string name="about">حول التطبيق</string>
+    <string name="version">الإصدار 1.0</string>
+    
+    <!-- Permissions -->
+    <string name="permission_camera_title">إذن الكاميرا مطلوب</string>
+    <string name="permission_camera_message">يحتاج التطبيق إلى إذن الكاميرا للتعرف على الأشياء</string>
+    <string name="permission_storage_title">إذن التخزين مطلوب</string>
+    <string name="permission_storage_message">يحتاج التطبيق إلى إذن التخزين لحفظ الصور</string>
+    <string name="grant_permission">منح الإذن</string>
+    <string name="deny_permission">رفض</string>
+    
+    <!-- Errors -->
+    <string name="error_camera">خطأ في فتح الكاميرا</string>
+    <string name="error_network">خطأ في الاتصال بالإنترنت</string>
+    <string name="error_analysis">فشل التحليل، حاول مرة أخرى</string>
+    <string name="error_unknown">حدث خطأ غير متوقع</string>
+    
+    <!-- Messages -->
+    <string name="saved_successfully">تم الحفظ بنجاح</string>
+    <string name="shared_successfully">تم المشاركة</string>
+    <string name="deleted_successfully">تم الحذف</string>
+    <string name="loading">جاري التحميل...</string>
+    
+    <!-- Categories -->
+    <string name="category_animal">حيوان</string>
+    <string name="category_plant">نبات</string>
+    <string name="category_food">طعام</string>
+    <string name="category_object">شيء</string>
+    <string name="category_vehicle">مركبة</string>
+    <string name="category_building">مبنى</string>
+    <string name="category_person">شخص</string>
+    <string name="category_other">أخرى</string>
+</resources>
