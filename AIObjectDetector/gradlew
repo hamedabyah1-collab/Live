@@ -62,7 +62,7 @@ set -e
 APP_DIR=$(cd "$(dirname "$0")" && pwd)
 APP_HOME=$(cd "$APP_DIR/.." && pwd)
 
-CLASSPATH="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
+CLASSPATH="$APP_DIR/gradle/wrapper/gradle-wrapper.jar"
 
 DEFAULT_JVM_OPTS="-Xmx64m -Xms64m"
 
