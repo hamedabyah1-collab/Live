@@ -1,2 +1,11 @@
 rootProject.name = "AI Object Detector"
+
+dependencyResolutionManagement {
+	repositoriesMode.set(org.gradle.api.artifacts.dsl.RepositoryHandler.repositoriesMode.FAIL_ON_PROJECT_REPOS)
+	repositories {
+		google()
+		mavenCentral()
+	}
+}
+
 include ':app'
