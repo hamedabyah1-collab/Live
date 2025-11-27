@@ -1,6 +1,10 @@
 package com.aidetector.app
 
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.PermissionChecker
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -40,8 +44,25 @@ class CameraActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         aiAnalyzer = AIAnalyzer(this)
         
-        startCamera()
+        // Ensure we have camera permission before starting CameraX
+        if (PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA) == PermissionChecker.PERMISSION_GRANTED) {
+            startCamera()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
+        }
         setupClickListeners()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera()
+            } else {
+                Toast.makeText(this, getString(R.string.permission_camera_title), Toast.LENGTH_SHORT).show()
+                // Optionally finish activity if permission denied
+            }
+        }
     }
     
     private fun setupClickListeners() {
