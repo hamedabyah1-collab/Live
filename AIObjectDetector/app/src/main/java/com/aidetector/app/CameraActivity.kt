@@ -124,8 +124,8 @@ class CameraActivity : AppCompatActivity() {
             try {
                 cameraProvider?.unbindAll()
                 camera = cameraProvider?.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
-                )
+    this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture
+)
             } catch (e: Exception) {
                 Log.e(TAG, "Camera binding failed", e)
                 Toast.makeText(this, getString(R.string.error_camera), Toast.LENGTH_SHORT).show()
