@@ -73,8 +73,6 @@
     <string name="category_building">مبنى</string>
     <string name="category_person">شخص</string>
     <string name="category_other">أخرى</string>
-</resources>
-<resources>
     <!-- ... النصوص الموجودة مسبقاً ... -->
 
     <!-- نصوص الأذونات الجديدة -->
