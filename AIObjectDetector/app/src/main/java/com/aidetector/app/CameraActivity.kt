@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity() {
-    
+
     private lateinit var binding: ActivityCameraBinding
     private var imageCapture: ImageCapture? = null
     private var camera: Camera? = null
@@ -35,19 +35,21 @@ class CameraActivity : AppCompatActivity() {
     private var flashMode = ImageCapture.FLASH_MODE_OFF
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var aiAnalyzer: AIAnalyzer
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         cameraExecutor = Executors.newSingleThreadExecutor()
         aiAnalyzer = AIAnalyzer(this)
-        
+
         // Ensure we have camera permission before starting CameraX
+        // (يفترض أن الأذونات تم طلبها في MainActivity، هذا تحقق إضافي)
         if (PermissionChecker.checkSelfPermission(this, Manifest.permission.CAMERA) == PermissionChecker.PERMISSION_GRANTED) {
             startCamera()
         } else {
+            // في حالة عدم منح الإذن، نطلب الإذن مرة أخرى أو ننهي النشاط
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
         }
         setupClickListeners()
@@ -64,18 +66,18 @@ class CameraActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private fun setupClickListeners() {
         // Back Button
         binding.btnBack.setOnClickListener {
             finish()
         }
-        
+
         // Flash Toggle
         binding.btnFlash.setOnClickListener {
             toggleFlash()
         }
-        
+
         // Switch Camera
         binding.btnSwitchCamera.setOnClickListener {
             lensFacing = if (lensFacing == CameraSelector.LENS_FACING_BACK) {
@@ -85,55 +87,62 @@ class CameraActivity : AppCompatActivity() {
             }
             startCamera()
         }
-        
+
         // Capture Button
         binding.btnCapture.setOnClickListener {
             takePhoto()
         }
-        
+
         // Gallery Button
         binding.btnGallery.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
     }
-    
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        
+
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
-            
+
             // Preview
             val preview = Preview.Builder()
                 .build()
                 .also {
                     it.setSurfaceProvider(binding.previewView.surfaceProvider)
                 }
-            
+
             // Image Capture
             imageCapture = ImageCapture.Builder()
                 .setFlashMode(flashMode)
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 .build()
-            
+
             // Camera Selector
             val cameraSelector = CameraSelector.Builder()
                 .requireLensFacing(lensFacing)
                 .build()
-            
+
             try {
-                cameraProvider?.unbindAll()
-                camera = cameraProvider?.bindToLifecycle(
-    this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture
-)
+                // **التعديل هنا: التحقق من توفر الكاميرا قبل الربط**
+                if (cameraProvider?.hasCamera(cameraSelector) == true) {
+                    cameraProvider?.unbindAll()
+                    camera = cameraProvider?.bindToLifecycle(
+                        this, cameraSelector, preview, imageCapture
+                    )
+                } else {
+                    // إذا لم تتوفر الكاميرا المطلوبة (مثلاً، الكاميرا الأمامية غير موجودة)
+                    Log.e(TAG, "Requested camera not available: $lensFacing")
+                    Toast.makeText(this, getString(R.string.error_camera_not_available), Toast.LENGTH_LONG).show()
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Camera binding failed", e)
                 Toast.makeText(this, getString(R.string.error_camera), Toast.LENGTH_SHORT).show()
             }
-            
+
         }, ContextCompat.getMainExecutor(this))
     }
-    
+
     private fun toggleFlash() {
         flashMode = if (flashMode == ImageCapture.FLASH_MODE_OFF) {
             binding.btnFlash.contentDescription = getString(R.string.flash_on)
@@ -144,22 +153,22 @@ class CameraActivity : AppCompatActivity() {
         }
         imageCapture?.flashMode = flashMode
     }
-    
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
-        
+
         // Create output file
         val photoFile = File(
             getOutputDirectory(),
             SimpleDateFormat(FILENAME_FORMAT, Locale.US)
                 .format(System.currentTimeMillis()) + ".jpg"
         )
-        
+
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        
+
         // Show loading
         showLoading(true)
-        
+
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
@@ -173,7 +182,7 @@ class CameraActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                
+
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     Log.d(TAG, "Photo saved: ${photoFile.absolutePath}")
                     analyzeImage(photoFile)
@@ -181,20 +190,20 @@ class CameraActivity : AppCompatActivity() {
             }
         )
     }
-    
+
     private fun analyzeImage(imageFile: File) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 // Load bitmap
                 val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-                
+
                 // Analyze with AI
                 val result = withContext(Dispatchers.IO) {
                     aiAnalyzer.analyzeImage(bitmap)
                 }
-                
+
                 showLoading(false)
-                
+
                 if (result != null) {
                     // Navigate to result screen
                     val intent = Intent(this@CameraActivity, ResultActivity::class.java)
@@ -212,7 +221,7 @@ class CameraActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                
+
             } catch (e: Exception) {
                 Log.e(TAG, "Analysis failed", e)
                 showLoading(false)
@@ -224,26 +233,26 @@ class CameraActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private fun showLoading(show: Boolean) {
         binding.analysisOverlay.visibility = if (show) View.VISIBLE else View.GONE
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
         binding.tvAnalyzing.visibility = if (show) View.VISIBLE else View.GONE
         binding.btnCapture.isEnabled = !show
     }
-    
+
     private fun getOutputDirectory(): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
         return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
-    
+
     companion object {
         private const val TAG = "CameraActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
