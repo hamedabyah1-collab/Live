@@ -74,3 +74,16 @@
     <string name="category_person">شخص</string>
     <string name="category_other">أخرى</string>
 </resources>
+<resources>
+    <!-- ... النصوص الموجودة مسبقاً ... -->
+
+    <!-- نصوص الأذونات الجديدة -->
+    <string name="permission_explanation">يحتاج التطبيق إلى إذن الكاميرا والتخزين للتعرف على الأشياء وحفظ الصور. الرجاء منح الأذونات المطلوبة.</string>
+    <string name="permission_denied_message">تم رفض الأذونات المطلوبة. لن يعمل التطبيق بشكل صحيح بدونها.</string>
+    
+    <!-- نصوص الأزرار العامة (إذا لم تكن موجودة بالفعل) -->
+    <string name="ok">موافق</string>
+    <string name="cancel">إلغاء</string>
+
+    <!-- ... النصوص الأخرى ... -->
+</resources>
