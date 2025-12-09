@@ -2,77 +2,80 @@ package com.aidetector.app
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.aidetector.app.databinding.ActivityMainBinding
-import com.permissionx.guolindev.PermissionX
+import com.guolindev.permissionx.PermissionX
 
 class MainActivity : AppCompatActivity() {
-    
+
     private lateinit var binding: ActivityMainBinding
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         setupClickListeners()
     }
-    
+
     private fun setupClickListeners() {
-        // Start Camera Button
-        binding.btnStartCamera.setOnClickListener {
-            requestCameraPermission()
+        // زر "ابدأ الكشف"
+        binding.btnStartDetection.setOnClickListener {
+            requestPermissions()
         }
-        
-        // View History Button
-        binding.btnViewHistory.setOnClickListener {
+
+        // زر "السجل"
+        binding.btnHistory.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
-        
-        // Settings Button
+
+        // زر "الإعدادات"
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
-    
-    private fun requestCameraPermission() {
+
+    private fun requestPermissions() {
+        // تحديد الأذونات المطلوبة
+        val permissionsList = mutableListOf(Manifest.permission.CAMERA)
+
+        // إضافة إذن التخزين حسب إصدار Android
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            // Android 9 (Pie) وأقل
+            permissionsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 (Tiramisu) وأعلى
+            permissionsList.add(Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            // Android 10, 11, 12 لا تحتاج إلى إذن تخزين صريح لحفظ الملفات في المجلدات الخاصة بالتطبيق
+        }
+
         PermissionX.init(this)
-            .permissions(
-                Manifest.permission.CAMERA,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-            .onExplainRequestReason { scope, deniedList ->
+            .permissions(permissionsList)
+            .onExplainRequestBefore { scope, deniedList ->
+                // عرض رسالة توضيحية قبل طلب الأذونات
                 scope.showRequestReasonDialog(
                     deniedList,
-                    getString(R.string.permission_camera_message),
-                    getString(R.string.grant_permission),
-                    getString(R.string.deny_permission)
+                    getString(R.string.permission_explanation), // "يحتاج التطبيق إلى هذه الأذونات ليعمل بشكل صحيح."
+                    getString(R.string.ok),
+                    getString(R.string.cancel)
                 )
             }
-            .onForwardToSettings { scope, deniedList ->
-                scope.showForwardToSettingsDialog(
-                    deniedList,
-                    getString(R.string.permission_camera_message),
-                    getString(R.string.settings),
-                    getString(R.string.deny_permission)
-                )
-            }
-            .request { allGranted, _, _ ->
+            .request { allGranted, grantedList, deniedList ->
                 if (allGranted) {
-                    startCameraActivity()
+                    // جميع الأذونات ممنوحة، ابدأ نشاط الكاميرا
+                    startActivity(Intent(this, CameraActivity::class.java))
                 } else {
+                    // لم يتم منح جميع الأذونات
                     Toast.makeText(
                         this,
-                        getString(R.string.permission_camera_title),
-                        Toast.LENGTH_SHORT
+                        getString(R.string.permission_denied_message) + deniedList.toString(),
+                        Toast.LENGTH_LONG
                     ).show()
                 }
             }
-    }
-    
-    private fun startCameraActivity() {
-        startActivity(Intent(this, CameraActivity::class.java))
     }
 }
