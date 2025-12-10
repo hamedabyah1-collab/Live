@@ -44,3 +44,5 @@ jobs:
         with:
           name: app-debug-apk
           path: AIObjectDetector/app/build/outputs/apk/debug/*.apk
+- name: Release APK
+  uses: ShowMeThe/github_action_release@v0.01
