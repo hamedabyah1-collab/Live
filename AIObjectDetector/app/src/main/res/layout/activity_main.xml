@@ -1,105 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
     tools:context=".MainActivity">
 
-    <!-- App Logo/Icon -->
-    <ImageView
-        android:id="@+id/ivLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="80dp"
-        android:src="@mipmap/ic_launcher"
-        android:contentDescription="@string/app_name"
+    <Button
+        android:id="@+id/btn_start_detection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="فتح الكاميرا"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Welcome Title -->
-    <TextView
-        android:id="@+id/tvWelcomeTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/welcome_title"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary_light"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/ivLogo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Welcome Subtitle -->
-    <TextView
-        android:id="@+id/tvWelcomeSubtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/welcome_subtitle"
-        android:textSize="16sp"
-        android:textColor="@color/text_secondary_light"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcomeTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
-    <!-- Start Camera Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStartCamera"
-        style="@style/PrimaryButton"
-        android:layout_width="0dp"
+    <Button
+        android:id="@+id/btn_history"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="48dp"
-        android:text="@string/start_camera"
-        android:textSize="18sp"
-        android:drawableStart="@android:drawable/ic_menu_camera"
-        android:drawablePadding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcomeSubtitle"
+        android:text="@string/history"
+        app:layout_constraintTop_toBottomOf="@id/btn_start_detection"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
-    <!-- View History Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnViewHistory"
-        style="@style/SecondaryButton"
-        android:layout_width="0dp"
+    <Button
+        android:id="@+id/btn_settings"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/view_history"
-        android:textSize="16sp"
-        android:drawableStart="@android:drawable/ic_menu_recent_history"
-        android:drawablePadding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/btnStartCamera"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Settings Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSettings"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
         android:text="@string/settings"
-        android:textSize="14sp"
-        android:drawableStart="@android:drawable/ic_menu_preferences"
-        android:drawablePadding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_history"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
