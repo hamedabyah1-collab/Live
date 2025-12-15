@@ -45,7 +45,8 @@
     <string name="permission_storage_message">يحتاج التطبيق إلى إذن التخزين لحفظ الصور</string>
     <string name="grant_permission">منح الإذن</string>
     <string name="deny_permission">رفض</string>
-
+    
+    <string name="error_camera_not_available">الكاميرا غير متاحة</string>
     <string name="error_camera">خطأ في فتح الكاميرا</string>
     <string name="error_network">خطأ في الاتصال بالإنترنت</string>
     <string name="error_analysis">فشل التحليل، حاول مرة أخرى</string>
