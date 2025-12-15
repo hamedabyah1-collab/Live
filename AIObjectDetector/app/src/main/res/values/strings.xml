@@ -26,7 +26,7 @@
     <string name="save_result">حفظ</string>
     <string name="scan_again">مسح مرة أخرى</string>
 
-    <string name="history_title">السجل</string>
+    <string name="history">السجل</string>
     <string name="history_empty">لا يوجد سجل بعد</string>
     <string name="clear_history">مسح السجل</string>
     <string name="delete_item">حذف</string>
