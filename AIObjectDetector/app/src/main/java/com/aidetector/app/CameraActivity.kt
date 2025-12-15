@@ -133,8 +133,8 @@ class CameraActivity : AppCompatActivity() {
                 } else {
                     // إذا لم تتوفر الكاميرا المطلوبة (مثلاً، الكاميرا الأمامية غير موجودة)
                     Log.e(TAG, "Requested camera not available: $lensFacing")
-                    Toast.makeText(this, getString(R.string.error_camera_not_available), Toast.LENGTH_LONG).show()
-                }
+                    Toast.makeText(this, getString(R.string.error_camera), Toast.LENGTH_LONG).show()
+                    
             } catch (e: Exception) {
                 Log.e(TAG, "Camera binding failed", e)
                 Toast.makeText(this, getString(R.string.error_camera), Toast.LENGTH_SHORT).show()
