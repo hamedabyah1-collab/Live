@@ -26,6 +26,7 @@
     <string name="save_result">حفظ</string>
     <string name="scan_again">مسح مرة أخرى</string>
 
+    <string name="history_title">السجل</string>
     <string name="history">السجل</string>
     <string name="history_empty">لا يوجد سجل بعد</string>
     <string name="clear_history">مسح السجل</string>
@@ -45,7 +46,7 @@
     <string name="permission_storage_message">يحتاج التطبيق إلى إذن التخزين لحفظ الصور</string>
     <string name="grant_permission">منح الإذن</string>
     <string name="deny_permission">رفض</string>
-    
+
     <string name="error_camera_not_available">الكاميرا غير متاحة</string>
     <string name="error_camera">خطأ في فتح الكاميرا</string>
     <string name="error_network">خطأ في الاتصال بالإنترنت</string>
