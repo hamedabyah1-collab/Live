@@ -1,129 +1,265 @@
 package com.aidetector.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.tensorflow.lite.Interpreter
-import java.io.FileInputStream
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
+import androidx.core.content.PermissionChecker
+import com.aidetector.app.databinding.ActivityCameraBinding
+import com.aidetector.app.ml.AIAnalyzer
+import kotlinx.coroutines.*
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity() {
 
-    private lateinit var resultText: TextView
-    private lateinit var capturedImage: ImageView
-    private lateinit var captureButton: Button
-    private lateinit var tflite: Interpreter
-    private lateinit var labels: List<String>
-
-    private val CAMERA_PERMISSION_CODE = 100
+    private lateinit var binding: ActivityCameraBinding
+    private var imageCapture: ImageCapture? = null
+    private var cameraProvider: ProcessCameraProvider? = null
+    private var lensFacing = CameraSelector.LENS_FACING_BACK
+    private var flashMode = ImageCapture.FLASH_MODE_OFF
+    private lateinit var cameraExecutor: ExecutorService
+    private lateinit var aiAnalyzer: AIAnalyzer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
+        binding = ActivityCameraBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        resultText = findViewById(R.id.resultText)
-        capturedImage = findViewById(R.id.capturedImage)
-        captureButton = findViewById(R.id.captureButton)
+        cameraExecutor = Executors.newSingleThreadExecutor()
+        aiAnalyzer = AIAnalyzer(this)
 
-        // تحميل نموذج TFLite
-        tflite = Interpreter(loadModelFile("model.tflite"))
-
-        // تحميل Labels
-        labels = assets.open("labels.txt").bufferedReader().readLines()
-
-        // صلاحية الكاميرا
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_CODE)
-        }
-
-        captureButton.setOnClickListener {
-            captureAndAnalyze()
-        }
-    }
-
-    private fun captureAndAnalyze() {
-        // هنا تضيف الكود اللي يلتقط الصورة من الكاميرا
-        val bitmap: Bitmap = getCapturedBitmap() // خذ الصورة من الكاميرا
-
-        capturedImage.setImageBitmap(bitmap)
-
-        // تجهيز الصورة للنموذج
-        val resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
-        val input = preprocessBitmap(resized)
-
-        // مصفوفة خرج النموذج
-        val output = Array(1) { FloatArray(labels.size) }
-
-        tflite.run(input, output)
-
-        // عرض النتائج بشكل ذكي
-        displayResults(output[0])
-    }
-
-    private fun loadModelFile(filename: String): MappedByteBuffer {
-        val fileDescriptor = assets.openFd(filename)
-        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-        val channel = inputStream.channel
-        return channel.map(FileChannel.MapMode.READ_ONLY, fileDescriptor.startOffset, fileDescriptor.declaredLength)
-    }
-
-    private fun preprocessBitmap(bitmap: Bitmap): Array<Array<Array<FloatArray>>> {
-        val input = Array(1) { Array(224) { Array(224) { FloatArray(3) } } }
-        for (y in 0 until 224) {
-            for (x in 0 until 224) {
-                val px = bitmap.getPixel(x, y)
-                input[0][y][x][0] = ((px shr 16 and 0xFF) / 255.0f)
-                input[0][y][x][1] = ((px shr 8 and 0xFF) / 255.0f)
-                input[0][y][x][2] = ((px and 0xFF) / 255.0f)
-            }
-        }
-        return input
-    }
-
-    private fun displayResults(predictions: FloatArray) {
-        val indexed = predictions.mapIndexed { index, conf -> index to conf }
-            .sortedByDescending { it.second }
-
-        val topIndex = indexed[0].first
-        val topConf = indexed[0].second
-        val topLabel = labels[topIndex]
-
-        if (topLabel == "Space" || topConf < 0.5f) {
-            // لو الثقة ضعيفة، نعرض أعلى 3 احتمالات
-            val top3 = indexed.take(3)
-                .map { "${labels[it.first]} (${String.format("%.2f", it.second)})" }
-                .joinToString("\n")
-            resultText.text = "احتمالات:\n$top3"
+        if (PermissionChecker.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PermissionChecker.PERMISSION_GRANTED
+        ) {
+            startCamera()
         } else {
-            // الثقة عالية، نعرض النتيجة مباشرة
-            resultText.text = "$topLabel (${String.format("%.2f", topConf)})"
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                REQUEST_CAMERA_PERMISSION
+            )
         }
+
+        setupClickListeners()
     }
 
-    private fun getCapturedBitmap(): Bitmap {
-        // هنا تحط الكود اللي يجيب الصورة من الكاميرا أو من معرض الصور
-        // مؤقتاً نستخدم صورة افتراضية من الموارد
-        return BitmapFactory.decodeResource(resources, R.drawable.sample_image)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "الكاميرا مطلوبة!", Toast.LENGTH_LONG).show()
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
+                startCamera()
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.permission_camera_title),
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
             }
         }
+    }
+
+    private fun setupClickListeners() {
+        binding.btnBack.setOnClickListener { finish() }
+
+        binding.btnFlash.setOnClickListener { toggleFlash() }
+
+        binding.btnSwitchCamera.setOnClickListener {
+            lensFacing =
+                if (lensFacing == CameraSelector.LENS_FACING_BACK)
+                    CameraSelector.LENS_FACING_FRONT
+                else
+                    CameraSelector.LENS_FACING_BACK
+            startCamera()
+        }
+
+        binding.btnCapture.setOnClickListener { takePhoto() }
+
+        binding.btnGallery.setOnClickListener {
+            startActivity(Intent(this, HistoryActivity::class.java))
+        }
+    }
+
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            cameraProvider = cameraProviderFuture.get()
+
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                }
+
+            imageCapture = ImageCapture.Builder()
+                .setFlashMode(flashMode)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .build()
+
+            val cameraSelector = CameraSelector.Builder()
+                .requireLensFacing(lensFacing)
+                .build()
+
+            try {
+                if (cameraProvider?.hasCamera(cameraSelector) == true) {
+                    cameraProvider?.unbindAll()
+                    cameraProvider?.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        preview,
+                        imageCapture
+                    )
+                } else {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_camera),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Camera error", e)
+                Toast.makeText(
+                    this,
+                    getString(R.string.error_camera),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun toggleFlash() {
+        flashMode =
+            if (flashMode == ImageCapture.FLASH_MODE_OFF)
+                ImageCapture.FLASH_MODE_ON
+            else
+                ImageCapture.FLASH_MODE_OFF
+
+        imageCapture?.flashMode = flashMode
+    }
+
+    private fun takePhoto() {
+        val capture = imageCapture ?: return
+
+        val photoFile = File(
+            getOutputDirectory(),
+            SimpleDateFormat(FILENAME_FORMAT, Locale.US)
+                .format(System.currentTimeMillis()) + ".jpg"
+        )
+
+        showLoading(true)
+
+        capture.takePicture(
+            ImageCapture.OutputFileOptions.Builder(photoFile).build(),
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e(TAG, "Capture failed", exc)
+                    showLoading(false)
+                    Toast.makeText(
+                        this@CameraActivity,
+                        getString(R.string.error_analysis),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                override fun onImageSaved(
+                    output: ImageCapture.OutputFileResults
+                ) {
+                    analyzeImage(photoFile)
+                }
+            }
+        )
+    }
+
+    private fun analyzeImage(imageFile: File) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val bitmap =
+                    BitmapFactory.decodeFile(imageFile.absolutePath)
+
+                val result = withContext(Dispatchers.IO) {
+                    aiAnalyzer.analyzeImage(bitmap)
+                }
+
+                showLoading(false)
+
+                if (result != null) {
+                    val intent =
+                        Intent(this@CameraActivity, ResultActivity::class.java)
+                    intent.putExtra("image_path", imageFile.absolutePath)
+                    intent.putExtra("object_name", result.name)
+                    intent.putExtra("category", result.category)
+                    intent.putExtra("description", result.description)
+                    intent.putExtra("info", result.additionalInfo)
+                    intent.putExtra("confidence", result.confidence)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(
+                        this@CameraActivity,
+                        getString(R.string.error_analysis),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Analysis error", e)
+                showLoading(false)
+                Toast.makeText(
+                    this@CameraActivity,
+                    getString(R.string.error_analysis),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun showLoading(show: Boolean) {
+        val v = if (show) View.VISIBLE else View.GONE
+        binding.analysisOverlay.visibility = v
+        binding.progressBar.visibility = v
+        binding.tvAnalyzing.visibility = v
+        binding.btnCapture.isEnabled = !show
+    }
+
+    private fun getOutputDirectory(): File {
+        val dir = externalMediaDirs.firstOrNull()?.let {
+            File(it, getString(R.string.app_name)).apply { mkdirs() }
+        }
+        return if (dir != null && dir.exists()) dir else filesDir
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
+
+    companion object {
+        private const val TAG = "CameraActivity"
+        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val REQUEST_CAMERA_PERMISSION = 1001
     }
 }
